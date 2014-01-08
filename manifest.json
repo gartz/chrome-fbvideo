@@ -1,0 +1,19 @@
+{
+  "manifest_version": 0,
+
+  "name": "Facebook Lost Videos",
+  "description": "This extension make your videos in facebook timeline aways visible.",
+  "version": "0.0.0",
+
+  "permissions": [
+    "http://fbvideos.gartz.com.br/"
+  ],
+  "page_action": {
+    "default_icon": {
+      "19": "images/icon19.png",
+      "38": "images/icon38.png"
+    },
+    "default_title": "Facebook Lost Videos",
+    "default_popup": "popup.html"
+  }
+}
