@@ -4,11 +4,6 @@
 
 /*global chrome*/
 
-chrome.tabs.onSelectionChanged.addListener(function(tabId) {
-	  lastTabId = tabId;
-      console.log(tabId);
-});
-
 // Shim for contains in old ES6 nom compatible chrome versions
 if (!String.prototype.contains) {
 	String.prototype.contains = function(searchString) {
@@ -18,15 +13,15 @@ if (!String.prototype.contains) {
 	}
 }
 
+// When change the URL on the TAB
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
-  console.log('Tab URL', tabId, changeInfo, tab);
   if(changeInfo.status === 'loading') {
-    console.log('loading');
     if (!(tab.url.contains('facebook.com') || tab.url.contains('fb.com'))) {
       return;
     }
-    console.log('loading show ' + tab.id);
-    
+	
+	//TODO: Add gray icon
+	
     // show page action
     chrome.pageAction.show(tab.id);
 
@@ -47,9 +42,7 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
     if (!(tab.url.contains('facebook.com') || tab.url.contains('fb.com'))) {
       return;
     }
-    
-    console.log('complete show ' + tab.id);
-    
+
     // show page action
     chrome.pageAction.show(tab.id);
 

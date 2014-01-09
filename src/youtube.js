@@ -1,9 +1,9 @@
+'use strict';
+
 var LEFT_COL_SIZE = 180;
 var HEIGHT = 60;
 var videosSelector = '.swfObject';
 var placeEl = document.querySelector('#pagelet_dock');
-
-console.log('Youtube Lost Videos');
 
 var destineEl = document.querySelector('#youtubeVideos');
 if (!destineEl) {
