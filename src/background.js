@@ -9,7 +9,14 @@ chrome.tabs.onSelectionChanged.addListener(function(tabId) {
       console.log(tabId);
 });
 
-
+// Shim for contains in old ES6 nom compatible chrome versions
+if (!String.prototype.contains) {
+	String.prototype.contains = function(searchString) {
+		var position = arguments.length > 1 ? arguments[1] : undefined;
+		// Somehow this trick makes method 100% compat with the spec.
+		return String.prototype.indexOf.call(this, searchString, position) !== -1;
+	}
+}
 
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
   console.log('Tab URL', tabId, changeInfo, tab);
