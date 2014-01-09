@@ -1,11 +1,59 @@
-'use strict';
-
 var LEFT_COL_SIZE = 180;
+var AVATAR_WIDTH_AREA = 100;
 var HEIGHT = 60;
 var videosSelector = '.swfObject';
 var placeEl = document.querySelector('#pagelet_dock');
-
 var destineEl = document.querySelector('#youtubeVideos');
+
+// List useful cached elements, to don't run query every time
+var els = {
+    body: this.document.body,
+    content: document.querySelector('#content'),
+    leftCol: document.querySelector('#leftCol')
+};
+
+var dimensions = {
+    defaultWidth: LEFT_COL_SIZE,
+    defaultHeight: HEIGHT,
+    dockArea: LEFT_COL_SIZE,
+    maxVideoSize: LEFT_COL_SIZE + AVATAR_WIDTH_AREA,
+    fbRightBar: 1546
+}
+
+var updateVideoSizeST;
+
+function updateDimensions() {
+    var area = els.body.clientWidth - els.content.clientWidth;
+    var pageletTicker = document.querySelector('#pagelet_ticker');
+    if (pageletTicker) {
+        console.log(pageletTicker.clientWidth);
+        area -= pageletTicker.clientWidth;
+    }
+    if (area < 0) {
+        area = leftCol.clientWidth;
+    } else {
+        // Only left size of the area plus leftCol width
+        area = (area / 2) + leftCol.clientWidth;
+    }
+    
+    dimensions.dockArea = area;
+    dimensions.maxVideoSize = area + AVATAR_WIDTH_AREA;
+}
+
+setTimeout(updateDimensions, 50);
+
+window.addEventListener('load', updateDimensions);
+
+window.addEventListener('resize', function () {
+    updateDimensions()
+    clearTimeout(updateVideoSizeST);
+    setTimeout(function () {
+        manipulateVideos();
+    }, 500);
+});
+
+window.addEventListener('scroll', manipulateVideos);
+
 if (!destineEl) {
     destineEl = document.createElement('div');
     destineEl.setAttribute('id', 'youtubeVideos');
@@ -15,55 +63,69 @@ if (!destineEl) {
     placeEl.appendChild(destineEl);
 }
 
-function squizeVideo(element) {
+function squizeVideo(element, width, height) {
+    if (!width) {
+        width = dimensions.defaultWidth;
+    }
+    if (!height) {
+        height = dimensions.defaultHeight
+    }
+    
     // Resize elements to the destineEl size
     
-    if (!element.dataset.dataOriginalWidth) {
-        element.dataset.dataOriginalWidth = element.clientWidth + 'px';
+    if (!element.dataset.originalWidth) {
+        element.dataset.originalWidth = element.clientWidth;
     }
-    element.style.width = LEFT_COL_SIZE + 'px';
+    element.style.width = width + 'px';
     
-    if (!element.dataset.dataOriginalHeight) {
-        element.dataset.dataOriginalHeight = element.clientHeight + 'px';
+    if (!element.dataset.originalHeight) {
+        element.dataset.originalHeight = element.clientHeight;
     }
-    element.style.height = HEIGHT + 'px';
+    element.style.height = height + 'px';
     
-    if (!element.dataset.dataOriginalParent) {
-        element.dataset.dataOriginalParent = element.parentElement;
+    if (!element.dataset.originalParent) {
+        element.dataset.originalParent = element.parentElement;
     }
     
     var iframe = element.querySelector('iframe');
     
-    if (!iframe.dataset.dataOriginalWidth) {
-        iframe.dataset.dataOriginalWidth = iframe.getAttribute('width');
+    if (!iframe.dataset.originalWidth) {
+        iframe.dataset.originalWidth = iframe.getAttribute('width');
     }
-    iframe.setAttribute('width', LEFT_COL_SIZE);
+    iframe.setAttribute('width', width);
     
-    if (!iframe.dataset.dataOriginalHeight) {
-        iframe.dataset.dataOriginalHeight = iframe.getAttribute('height');
+    if (!iframe.dataset.originalHeight) {
+        iframe.dataset.originalHeight = iframe.getAttribute('height');
     }
-    iframe.setAttribute('height', HEIGHT);
+    iframe.setAttribute('height', height);
 }
 
-function squizeResetVideo(element) {
-    element.style.width = element.dataset.dataOriginalWidth + 'px';
-    element.style.height = element.dataset.dataOriginalHeight + 'px';
+function videoToOriginalSize(element) {
+    element.style.width = element.dataset.originalWidth + 'px';
+    element.style.height = element.dataset.originalHeight + 'px';
     iframe = element.querySelector('iframe');
-    iframe.setAttribute('width', iframe.dataset.dataOriginalWidth);
-    iframe.setAttribute('height', iframe.dataset.dataOriginalHeight);
+    iframe.setAttribute('width', iframe.dataset.originalWidth);
+    iframe.setAttribute('height', iframe.dataset.originalHeight);
+}
+
+function elementWidth(element) {
+    var max = (dimensions.dockArea > element.dataset.originalWidth) 
+                    ? element.dataset.originalWidth
+                    : dimensions.dockArea;
+    return max;
 }
 
 function onMouseEnter(event) {
     // mouseEnter handler, will resize to original size, and change zIndex;
     
-    squizeResetVideo(this);
-    this.style.bottom = (parseInt(this.dataset.dataOriginalHeight) - 60) + 'px';
+    videoToOriginalSize(this);
+    this.style.bottom = '0px';
     
 }
 
 function onMouseLeave(event) {
     // mouseEnter handler, will resize to original size, and change zIndex;
-    squizeVideo(this);
+    squizeVideo(this, elementWidth(this));
     
     
     this.style.bottom = '0px';
@@ -80,7 +142,7 @@ function isElementInViewport(el) {
     );
 }
 
-setInterval(function () {
+function manipulateVideos() {
     var videos = document.querySelectorAll(videosSelector);
     Array.prototype.forEach.call(videos, function(element) {
         // Don't touch video stage
@@ -102,10 +164,14 @@ setInterval(function () {
             
             squizeVideo(element);
             element.style.position = 'relative';
+            element.style.paddingBottom = '4px';
             
             
             element.addEventListener('mouseenter', onMouseEnter);
             element.addEventListener('mouseleave', onMouseLeave);
         }
+        if (element.parentElement === destineEl && element.clientWidth !== dimensions.dockArea) {
+           squizeVideo(element, elementWidth(element));
+        }
     });    
-}, 1e3);
+}
