@@ -1,7 +1,7 @@
 var LEFT_COL_SIZE = 180;
 var HEIGHT = 60;
 var videosSelector = '.swfObject';
-var placeEl = document.querySelector('.clearfix.nubContainer.rNubContainer');
+var placeEl = document.querySelector('#pagelet_dock div div div');
 
 var destineEl = document.querySelector('#youtubeVideos');
 if (!destineEl) {

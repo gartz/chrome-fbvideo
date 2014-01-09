@@ -3,7 +3,7 @@
 
   "name": "Facebook Lost Videos",
   "description": "This extension make your videos in facebook timeline aways visible.",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "background": {
     "scripts": [
       "background.js"
