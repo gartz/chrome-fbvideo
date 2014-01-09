@@ -11,7 +11,6 @@ My email for suggestions: gabriel@gartz.com.br
 TODO:
 -----
 
-* Button to remove the video from the left list
 * Button to keep the video in original size display mode
 * Change the iframe to a embed youtube element
 * Add vídeos wached in friends last activities when it fadeout

@@ -19,7 +19,6 @@ closeButtonEl.style.top = '0px';
 closeButtonEl.addEventListener('click', function () {
     // onCLick remove video from the left list
     var videoDiv = this.parentElement
-        .parentElement
         .parentElement;
         
     videoDiv.parentElement.removeChild(videoDiv);
