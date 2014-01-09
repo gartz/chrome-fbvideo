@@ -12,10 +12,28 @@ closeButtonEl.setAttribute('data-tooltip-alighn', 'right');
 closeButtonEl.setAttribute('class', 'closeTheater');
 closeButtonEl.setAttribute('href', '#');
 closeButtonEl.setAttribute('role', 'button');
+closeButtonEl.style.position = 'absolute';
+closeButtonEl.style.right = '3px';
+closeButtonEl.style.top = '0px';
+
+closeButtonEl.addEventListener('click', function () {
+    // onCLick remove video from the left list
+    var videoDiv = this.parentElement
+        .parentElement
+        .parentElement;
+        
+    videoDiv.parentElement.removeChild(videoDiv);
+});
 
 var closeButtonDiv = document.createElement('div');
-closeButtonDiv.setAttribute('class', 'fbPhotoSnowliftControls');
+closeButtonDiv.setAttribute('class', 'fbPhotoSnowlift');
 closeButtonDiv.appendChild(closeButtonEl);
+closeButtonDiv.style.position = 'absolute';
+closeButtonDiv.style.width = '18px';
+closeButtonDiv.style.height = '50px';
+closeButtonDiv.style.right = '-18px';
+closeButtonDiv.style.top = '0px';
+closeButtonDiv.style.background = 'white';
 
 // List useful cached elements, to don't run query every time
 var els = {
@@ -132,8 +150,8 @@ function onMouseEnter(event) {
     // mouseEnter handler, will resize to original size, and change zIndex;
     
     videoToOriginalSize(this);
-    this.style.bottom = '0px';
     
+    // Append close button
     this.appendChild(els.closeButton);
 }
 
@@ -141,8 +159,8 @@ function onMouseLeave(event) {
     // mouseEnter handler, will resize to original size, and change zIndex;
     squizeVideo(this, elementWidth(this));
     
-    
-    this.style.bottom = '0px';
+    // Remove close button
+    this.removeChild(els.closeButton);
 }
 
 function isElementInViewport(el) {
@@ -179,6 +197,7 @@ function manipulateVideos() {
             squizeVideo(element);
             element.style.position = 'relative';
             element.style.paddingBottom = '4px';
+            element.style.bottom = '0px';
             
             
             element.addEventListener('mouseenter', onMouseEnter);
