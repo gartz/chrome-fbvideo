@@ -82,6 +82,8 @@ function isElementInViewport(el) {
 setInterval(function () {
     var videos = document.querySelectorAll(videosSelector);
     Array.prototype.forEach.call(videos, function(element) {
+        // Don't touch video stage
+        if (element.parentElement.className === 'videoStage') return;
         if (!isElementInViewport(element) && element.parentElement !== destineEl) {
             destineEl.insertBefore(element);
             
