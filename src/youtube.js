@@ -16,47 +16,46 @@ if (!destineEl) {
 function squizeVideo(element) {
     // Resize elements to the destineEl size
     
-    if (!element.dataOriginalWidth) {
-        element.dataOriginalWidth = element.style.width;
+    if (!element.dataset.dataOriginalWidth) {
+        element.dataset.dataOriginalWidth = element.clientWidth + 'px';
     }
     element.style.width = LEFT_COL_SIZE + 'px';
     
-    if (!element.dataOriginalHeight) {
-        element.dataOriginalHeight = element.style.height;
+    if (!element.dataset.dataOriginalHeight) {
+        element.dataset.dataOriginalHeight = element.clientHeight + 'px';
     }
     element.style.height = HEIGHT + 'px';
     
-    if (!element.dataOriginalParent) {
-        element.dataOriginalParent = element.parentElement;
+    if (!element.dataset.dataOriginalParent) {
+        element.dataset.dataOriginalParent = element.parentElement;
     }
     
     var iframe = element.querySelector('iframe');
     
-    if (!iframe.dataOriginalWidth) {
-        iframe.dataOriginalWidth = iframe.getAttribute('width');
+    if (!iframe.dataset.dataOriginalWidth) {
+        iframe.dataset.dataOriginalWidth = iframe.getAttribute('width');
     }
     iframe.setAttribute('width', LEFT_COL_SIZE);
     
-    if (!iframe.dataOriginalHeight) {
-        iframe.dataOriginalHeight = iframe.getAttribute('height');
+    if (!iframe.dataset.dataOriginalHeight) {
+        iframe.dataset.dataOriginalHeight = iframe.getAttribute('height');
     }
     iframe.setAttribute('height', HEIGHT);
 }
 
 function squizeResetVideo(element) {
-    element.style.width = element.dataOriginalWidth + 'px';
-    element.style.height = element.dataOriginalHeight + 'px';
+    element.style.width = element.dataset.dataOriginalWidth + 'px';
+    element.style.height = element.dataset.dataOriginalHeight + 'px';
     iframe = element.querySelector('iframe');
-    iframe.setAttribute('width', iframe.dataOriginalWidth);
-    iframe.setAttribute('height', iframe.dataOriginalHeight);
+    iframe.setAttribute('width', iframe.dataset.dataOriginalWidth);
+    iframe.setAttribute('height', iframe.dataset.dataOriginalHeight);
 }
 
 function onMouseEnter(event) {
     // mouseEnter handler, will resize to original size, and change zIndex;
     
     squizeResetVideo(this);
-    this.style.position = 'relative';
-    this.style.bottom = (parseInt(this.dataOriginalHeight) - 60) + 'px';
+    this.style.bottom = (parseInt(this.dataset.dataOriginalHeight) - 60) + 'px';
     
 }
 
@@ -64,7 +63,7 @@ function onMouseLeave(event) {
     // mouseEnter handler, will resize to original size, and change zIndex;
     squizeVideo(this);
     
-    this.style.position = 'initial';
+    
     this.style.bottom = '0px';
 }
 
@@ -87,7 +86,22 @@ setInterval(function () {
         if (!isElementInViewport(element) && element.parentElement !== destineEl) {
             destineEl.insertBefore(element);
             
+            while (element.classList.length !== 1) {
+                var clas = element.classList[0];
+                if (clas !== 'swfObject') {
+                    element.classList.remove(clas);
+                } else {
+                    clas = element.classList[1];
+                    if (clas) {
+                        element.classList.remove(clas);
+                    }
+                }
+            }
+            
             squizeVideo(element);
+            element.style.position = 'relative';
+            
+            
             element.addEventListener('mouseenter', onMouseEnter);
             element.addEventListener('mouseleave', onMouseLeave);
         }
