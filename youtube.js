@@ -26,6 +26,10 @@ function squizeVideo(element) {
     }
     element.style.height = HEIGHT + 'px';
     
+    if (!element.dataOriginalParent) {
+        element.dataOriginalParent = element.parentElement;
+    }
+    
     var iframe = element.querySelector('iframe');
     
     if (!iframe.dataOriginalWidth) {
@@ -64,10 +68,21 @@ function onMouseLeave(event) {
     this.style.bottom = '0px';
 }
 
+function isElementInViewport(el) {
+    var rect = el.getBoundingClientRect();
+
+    return (
+        rect.top >= 0 &&
+        rect.left >= 0 &&
+        rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) && /*or $(window).height() */
+        rect.right <= (window.innerWidth || document.documentElement.clientWidth) /*or $(window).width() */
+    );
+}
+
 setInterval(function () {
     var videos = document.querySelectorAll(videosSelector);
     Array.prototype.forEach.call(videos, function(element) {
-        if (element.parentElement !== destineEl) {
+        if (!isElementInViewport(element) && element.parentElement !== destineEl) {
             destineEl.insertBefore(element);
             
             squizeVideo(element);
