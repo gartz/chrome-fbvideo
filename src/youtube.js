@@ -3,6 +3,8 @@ var HEIGHT = 60;
 var videosSelector = '.swfObject';
 var placeEl = document.querySelector('#pagelet_dock');
 
+console.log('Youtube Lost Videos');
+
 var destineEl = document.querySelector('#youtubeVideos');
 if (!destineEl) {
     destineEl = document.createElement('div');

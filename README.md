@@ -15,3 +15,8 @@ TODO:
 * Button to keep the video in original size display mode
 * Change the iframe to a embed youtube element
 * Add vídeos wached in friends last activities when it fadeout
+
+Thanks to:
+----------
+
+* Danilo Matos, for creating the icon
