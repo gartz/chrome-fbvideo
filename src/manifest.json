@@ -3,7 +3,7 @@
 
   "name": "Facebook Lost Videos",
   "description": "This extension make your videos in facebook timeline aways visible.",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "author": "Gabriel Reitz Giannattasio (gabriel@gartz.com.br)",
   "homepage_url": "https://github.com/gartz/chrome-fbvideo",
   "background": {

@@ -5,11 +5,24 @@ var videosSelector = '.swfObject';
 var placeEl = document.querySelector('#pagelet_dock');
 var destineEl = document.querySelector('#youtubeVideos');
 
+var closeButtonEl = document.createElement('a');
+closeButtonEl.setAttribute('data-hover', 'tooltip');
+closeButtonEl.setAttribute('data-tooltip-position', 'below');
+closeButtonEl.setAttribute('data-tooltip-alighn', 'right');
+closeButtonEl.setAttribute('class', 'closeTheater');
+closeButtonEl.setAttribute('href', '#');
+closeButtonEl.setAttribute('role', 'button');
+
+var closeButtonDiv = document.createElement('div');
+closeButtonDiv.setAttribute('class', 'fbPhotoSnowliftControls');
+closeButtonDiv.appendChild(closeButtonEl);
+
 // List useful cached elements, to don't run query every time
 var els = {
     body: this.document.body,
     content: document.querySelector('#content'),
-    leftCol: document.querySelector('#leftCol')
+    leftCol: document.querySelector('#leftCol'),
+    closeButton: closeButtonDiv
 };
 
 var dimensions = {
@@ -20,8 +33,8 @@ var dimensions = {
     fbRightBar: 1546
 }
 
-var updateVideoSizeST;
 
+var updateVideoSizeST;
 function updateDimensions() {
     var area = els.body.clientWidth - els.content.clientWidth;
     var pageletTicker = document.querySelector('#pagelet_ticker');
@@ -121,6 +134,7 @@ function onMouseEnter(event) {
     videoToOriginalSize(this);
     this.style.bottom = '0px';
     
+    this.appendChild(els.closeButton);
 }
 
 function onMouseLeave(event) {
@@ -170,8 +184,11 @@ function manipulateVideos() {
             element.addEventListener('mouseenter', onMouseEnter);
             element.addEventListener('mouseleave', onMouseLeave);
         }
-        if (element.parentElement === destineEl && element.clientWidth !== dimensions.dockArea) {
-           squizeVideo(element, elementWidth(element));
+        if (element.parentElement === destineEl) {
+            if (element.clientWidth !== dimensions.dockArea && element.clientWidth !== (+ element.dataset.originalWidth)) {
+                console.log('oi?', element.clientWidth, element.dataset.originalWidth);
+                squizeVideo(element, elementWidth(element));
+            }
         }
     });    
 }
