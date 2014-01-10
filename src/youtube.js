@@ -56,7 +56,6 @@ function updateDimensions() {
     var area = els.body.clientWidth - els.content.clientWidth;
     var pageletTicker = document.querySelector('#pagelet_ticker');
     if (pageletTicker) {
-        console.log(pageletTicker.clientWidth);
         area -= pageletTicker.clientWidth;
     }
     if (area < 0) {
@@ -93,6 +92,27 @@ if (!destineEl) {
     placeEl.appendChild(destineEl);
 }
 
+function storeOriginalValues(element) {
+    if (!element.dataset.originalWidth) {
+        element.dataset.originalWidth = element.clientWidth;
+    }
+    if (!element.dataset.originalHeight) {
+        element.dataset.originalHeight = element.clientHeight;
+    }
+    // Dataset is only for strings, so it must be outside
+    if (!element.originalParent) {
+        element.originalParent = element.parentElement;
+    }
+    
+    var iframe = element.querySelector('iframe');
+    if (!iframe.dataset.originalWidth) {
+        iframe.dataset.originalWidth = iframe.getAttribute('width');
+    }
+    if (!iframe.dataset.originalHeight) {
+        iframe.dataset.originalHeight = iframe.getAttribute('height');
+    }
+}
+
 function squizeVideo(element, width, height) {
     if (!width) {
         width = dimensions.defaultWidth;
@@ -102,31 +122,12 @@ function squizeVideo(element, width, height) {
     }
     
     // Resize elements to the destineEl size
-    
-    if (!element.dataset.originalWidth) {
-        element.dataset.originalWidth = element.clientWidth;
-    }
     element.style.width = width + 'px';
-    
-    if (!element.dataset.originalHeight) {
-        element.dataset.originalHeight = element.clientHeight;
-    }
     element.style.height = height + 'px';
-    
-    if (!element.dataset.originalParent) {
-        element.dataset.originalParent = element.parentElement;
-    }
     
     var iframe = element.querySelector('iframe');
     
-    if (!iframe.dataset.originalWidth) {
-        iframe.dataset.originalWidth = iframe.getAttribute('width');
-    }
     iframe.setAttribute('width', width);
-    
-    if (!iframe.dataset.originalHeight) {
-        iframe.dataset.originalHeight = iframe.getAttribute('height');
-    }
     iframe.setAttribute('height', height);
 }
 
@@ -145,6 +146,26 @@ function elementWidth(element) {
     return max;
 }
 
+function aiMinimize(element) {
+    // If there is only one video and the screensize permite it's original size
+    // will not resize
+    
+    var videos = document.querySelectorAll(videosSelector);
+    
+    // If only one video
+    if (videos.length === 1) {
+        // There is area available for original size?
+        if (elementWidth(element) === (+ element.dataset.originalWidth)) {
+            videoToOriginalSize(element);
+        } else {
+            // if not, so squizeVideo
+            squizeVideo(element, elementWidth(element), (+ element.dataset.originalHeight));
+        }
+    } else {
+        squizeVideo(element, elementWidth(element));
+    }
+}
+
 function onMouseEnter(event) {
     // mouseEnter handler, will resize to original size, and change zIndex;
     
@@ -156,7 +177,7 @@ function onMouseEnter(event) {
 
 function onMouseLeave(event) {
     // mouseEnter handler, will resize to original size, and change zIndex;
-    squizeVideo(this, elementWidth(this));
+    aiMinimize(this);
     
     // Remove close button
     this.removeChild(els.closeButton);
@@ -193,7 +214,8 @@ function manipulateVideos() {
                 }
             }
             
-            squizeVideo(element);
+            storeOriginalValues(element);
+            aiMinimize(element);
             element.style.position = 'relative';
             element.style.paddingBottom = '4px';
             element.style.bottom = '0px';
@@ -204,9 +226,9 @@ function manipulateVideos() {
         }
         if (element.parentElement === destineEl) {
             if (element.clientWidth !== dimensions.dockArea && element.clientWidth !== (+ element.dataset.originalWidth)) {
-                console.log('oi?', element.clientWidth, element.dataset.originalWidth);
-                squizeVideo(element, elementWidth(element));
+                
+                aiMinimize(element);
             }
         }
-    });    
+    });
 }
