@@ -251,6 +251,35 @@ function resetFixed(element) {
     element.style.bottom = '0px';
 }
 
+function createViewPortDiv(swfObject) {
+    var id = 'swfObject' + Date.now();
+    var div = document.createElement('div');
+    div.id = id;
+    div.style.width = swfObject.clientWidth + 'px';
+    div.style.height = swfObject.clientHeight + 'px';
+    return div;
+}
+
+function initVideo(swfObject, maskElement) {
+    // Execute all the procedure to init a video element
+    
+    // Store the dimensions
+    storeDimensions(swfObject);
+    
+    // Insert the mask div with dimensions with an ID
+    var div = createViewPortDiv(swfObject);
+    maskElement.appendChild(div);
+    
+    // Store the ID
+    swfObject.dataset.placeId = div.id;
+    
+    // Move the element to videosList
+    divYoutubeVideos.appendChild(swfObject);
+    
+    // Move to original position
+    fixedMoveTo(swfObject, div);
+}
+
 function onWindowClick(event) {
     // If is a /ajax/flash/expand_inline do:
     
@@ -309,26 +338,8 @@ function onWindowClick(event) {
                 }
             }
             
-            // Store the dimensions
-            storeDimensions(swfObject);
-            
-            // Insert the mask div with dimensions with an ID
-            var id = 'swfObject' + Date.now();
-            var div = document.createElement('div');
-            div.id = id;
-            div.style.width = swfObject.clientWidth + 'px';
-            div.style.height = swfObject.clientHeight + 'px';
-            mutation.target.appendChild(div);
-            
-            
-            // Store the ID
-            swfObject.dataset.placeId = id;
-            
-            // Move the element to videosList
-            divYoutubeVideos.appendChild(swfObject);
-            
-            // Move to original position
-            fixedMoveTo(swfObject, div);
+            // Init the video, move to right place and put new mask insted
+            initVideo(swfObject, mutation.target);
         });
     });
     
@@ -384,6 +395,16 @@ function init() {
     
     // Update the window dimensions
     updateDimensions();
+    
+    // User already watching a video, need to move it
+    var videos = document.querySelectorAll('#contentCol .swfObject');
+    
+    console.log('ini videos', videos);
+    
+    Array.prototype.forEach.call(videos, function (element) {
+        // Init the video, move to right place and put new mask insted
+        initVideo(element, element.parentElement);
+    });
 }
 
 // ------------- Listeners -------------
