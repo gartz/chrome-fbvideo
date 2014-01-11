@@ -3,7 +3,8 @@ var AVATAR_WIDTH_AREA = 100;
 var HEIGHT = 60;
 var videosSelector = '.swfObject';
 var placeEl = document.querySelector('#pagelet_dock');
-var destineEl = document.querySelector('#youtubeVideos');
+
+var divYoutubeVideos = document.querySelector('#youtubeVideos');
 
 // Browser features needed (27+ || 18+):
 MutationObserver = MutationObserver || webkitMutationObserver;
@@ -76,13 +77,12 @@ function updateDimensions() {
     dimensions.maxVideoSize = area + AVATAR_WIDTH_AREA;
 }
 
-if (!destineEl) {
-    destineEl = document.createElement('div');
-    destineEl.setAttribute('id', 'youtubeVideos');
-    destineEl.style.position = 'fixed';
-    destineEl.style.bottom = '28px';
-    destineEl.style.left = '0px';
-    placeEl.appendChild(destineEl);
+if (!divYoutubeVideos) {
+    divYoutubeVideos = document.createElement('div');
+    divYoutubeVideos.setAttribute('id', 'youtubeVideos');
+    divYoutubeVideos.style.position = 'fixed';
+    divYoutubeVideos.style.bottom = '28px';
+    divYoutubeVideos.style.left = '0px';
 }
 
 function storeDimensions(element) {
@@ -117,7 +117,7 @@ function squizeVideo(element, width, height) {
         height = dimensions.defaultHeight
     }
     
-    // Resize elements to the destineEl size
+    // Resize elements to the divYoutubeVideos size
     element.style.width = width + 'px';
     element.style.height = height + 'px';
     
@@ -195,8 +195,8 @@ function manipulateVideos() {
     Array.prototype.forEach.call(videos, function(element) {
         // Don't touch video stage
         if (element.parentElement.className === 'videoStage') return;
-        if (!isElementInViewport(element) && element.parentElement !== destineEl) {
-            destineEl.insertBefore(element);
+        if (!isElementInViewport(element) && element.parentElement !== divYoutubeVideos) {
+            divYoutubeVideos.insertBefore(element);
             
             while (element.classList.length !== 1) {
                 var clas = element.classList[0];
@@ -220,13 +220,35 @@ function manipulateVideos() {
             element.addEventListener('mouseenter', onMouseEnter);
             element.addEventListener('mouseleave', onMouseLeave);
         }
-        if (element.parentElement === destineEl) {
+        if (element.parentElement === divYoutubeVideos) {
             if (element.clientWidth !== dimensions.dockArea && element.clientWidth !== (+ element.dataset.originalWidth)) {
                 
                 aiMinimize(element);
             }
         }
     });
+}
+
+function fixedMoveTo(element, destine) {
+    // Dock the target in the same place as destine
+    
+    position = destine.getBoundingClientRect();
+    
+    element.style.position = 'fixed';
+    element.style.left = position.left + 'px';
+    element.style.top = position.top + 'px';
+    element.style.right = '';
+    element.style.bottom = '';
+}
+
+function resetFixed(element) {
+    element.style.left = '';
+    element.style.top = '';
+    element.style.right = '';
+
+    element.style.position = 'relative';
+    element.style.paddingBottom = '4px';
+    element.style.bottom = '0px';
 }
 
 function onWindowClick(event) {
@@ -255,14 +277,7 @@ function onWindowClick(event) {
         return;
     }
     
-    // Find the container base element
-    var container = target.parentElement;
-    while (container && !container.className.contains('clearfix')) {
-        container.parentElement;
-    }
-    
-    console.log(target);
-    console.log('container', container);
+    console.log('target', target);
     
     var swfObject;
     
@@ -271,6 +286,7 @@ function onWindowClick(event) {
         // Search for mutations
         mutations.forEach(function (mutation) {
             // We need to know if childList has changed
+            console.log('mutation', mutation.type, mutation);
             if (mutation.type !== 'childList') {
                 return;
             }
@@ -286,6 +302,11 @@ function onWindowClick(event) {
             if (swfObject) {
                 swfObject.dataRemovedNodes = mutation.removedNodes;
                 observer.disconnect();
+                
+                // Workaround to execute only once
+                if (swfObject.dataset.placeId) {
+                    return;
+                }
             }
             
             // Store the dimensions
@@ -297,14 +318,17 @@ function onWindowClick(event) {
             div.id = id;
             div.style.width = swfObject.clientWidth + 'px';
             div.style.height = swfObject.clientHeight + 'px';
-            container.appendChild(div);
+            mutation.target.appendChild(div);
             
             
             // Store the ID
             swfObject.dataset.placeId = id;
             
             // Move the element to videosList
-            destineEl.appendChild(swfObject);
+            divYoutubeVideos.appendChild(swfObject);
+            
+            // Move to original position
+            fixedMoveTo(swfObject, div);
         });
     });
     
@@ -312,27 +336,75 @@ function onWindowClick(event) {
     var config = { attributes: false, childList: true, characterData: false };
      
     // pass in the target node, as well as the observer options
+    
+    // Find the container base element
+    var container = target.parentElement;
+    while (container && container.parentElement.children.length === 1) {
+        observer.observe(container, config);
+        container = container.parentElement;
+    }
     observer.observe(container, config);
+    container = container.parentElement;
+    while (container && container.parentElement.children.length === 1) {
+        observer.observe(container, config);
+        container = container.parentElement;
+    }
+    observer.observe(container, config);
+    
+}
+
+function moveVideos() {
+    // Move videos in the screen, if it's visible on DOM, keep on timeline
+    // but when not, move it to the left corner with other videos
+    
+    var videos = divYoutubeVideos.children;
+    
+    Array.prototype.forEach.call(videos, function (element) {
+        // There is original position on DOM?
+        var placeElement = document.querySelector('#' + element.dataset.placeId);
+        if (!placeElement) {
+            resetFixed(element);
+            return;
+        }
+        
+        if (!isElementInViewport(placeElement)) {
+            resetFixed(element);
+            return;
+        }
+        
+        fixedMoveTo(element, placeElement);
+    });
+}
+
+function init() {
+    // Execute onLoad or right after
+    
+    // Append the divYoutubeVideos in the placeEl
+    placeEl.appendChild(divYoutubeVideos);
+    
+    // Update the window dimensions
+    updateDimensions();
 }
 
 // ------------- Listeners -------------
 
 // After DOM load, store the window dimensions
-window.addEventListener('load', updateDimensions);
+window.addEventListener('load', init);
 
 // Workaround if DOM already loaded
-setTimeout(updateDimensions, 50);
+setTimeout(init, 50);
 
 // When resize update the window dimensions
-window.addEventListener('resize', function () {
-    updateDimensions()
-    clearTimeout(updateVideoSizeST);
-    setTimeout(function () {
-        manipulateVideos();
-    }, 500);
-});
+// window.addEventListener('resize', function () {
+//     updateDimensions()
+//     clearTimeout(updateVideoSizeST);
+//     setTimeout(function () {
+//         manipulateVideos();
+//     }, 500);
+// });
 
-// Change the video positions becouse user used scroll
-window.addEventListener('scroll', manipulateVideos);
+// Change the video positions becouse user used scroll or resize window
+window.addEventListener('scroll', moveVideos);
+window.addEventListener('resize', moveVideos);
 
 document.addEventListener('click', onWindowClick, true);
