@@ -30,6 +30,26 @@ closeButtonEl.addEventListener('click', function () {
         .parentElement;
         
     videoDiv.parentElement.removeChild(videoDiv);
+    
+    // There is cache from old element?
+    var removedNodes = videoDiv.dataRemovedNodes;
+    var placeId = videoDiv.dataset.placeId;
+    if (!removedNodes || removedNodes.length === 0 || !placeId) {
+        return;
+    }
+    
+    var oldPlaceEl = document.querySelector('#' + placeId);
+    if (!oldPlaceEl) {
+        return;
+    }
+    
+    // List and append elements to it old place
+    Array.prototype.forEach.call(removedNodes, function (element) {
+        oldPlaceEl.parentElement.appendChild(element);
+    });
+    
+    oldPlaceEl.parentElement.removeChild(oldPlaceEl);
+    videoDiv.dataset.placeId = '';
 });
 
 var closeButtonDiv = document.createElement('div');
@@ -162,23 +182,6 @@ function aiMinimize(element) {
     }
 }
 
-function onMouseEnter(event) {
-    // mouseEnter handler, will resize to original size, and change zIndex;
-    
-    videoToOriginalSize(this);
-    
-    // Append close button
-    this.appendChild(els.closeButton);
-}
-
-function onMouseLeave(event) {
-    // mouseEnter handler, will resize to original size, and change zIndex;
-    aiMinimize(this);
-    
-    // Remove close button
-    this.removeChild(els.closeButton);
-}
-
 function isElementInViewport(el) {
     var rect = el.getBoundingClientRect();
 
@@ -198,17 +201,17 @@ function manipulateVideos() {
         if (!isElementInViewport(element) && element.parentElement !== divYoutubeVideos) {
             divYoutubeVideos.insertBefore(element);
             
-            while (element.classList.length !== 1) {
-                var clas = element.classList[0];
-                if (clas !== 'swfObject') {
-                    element.classList.remove(clas);
-                } else {
-                    clas = element.classList[1];
-                    if (clas) {
-                        element.classList.remove(clas);
-                    }
-                }
-            }
+//             while (element.classList.length !== 1) {
+//                 var clas = element.classList[0];
+//                 if (clas !== 'swfObject') {
+//                     element.classList.remove(clas);
+//                 } else {
+//                     clas = element.classList[1];
+//                     if (clas) {
+//                         element.classList.remove(clas);
+//                     }
+//                 }
+//             }
             
             storeOriginalValues(element);
             aiMinimize(element);
@@ -217,8 +220,8 @@ function manipulateVideos() {
             element.style.bottom = '0px';
             
             
-            element.addEventListener('mouseenter', onMouseEnter);
-            element.addEventListener('mouseleave', onMouseLeave);
+//             element.addEventListener('mouseenter', onMouseEnter);
+//             element.addEventListener('mouseleave', onMouseLeave);
         }
         if (element.parentElement === divYoutubeVideos) {
             if (element.clientWidth !== dimensions.dockArea && element.clientWidth !== (+ element.dataset.originalWidth)) {
@@ -227,6 +230,47 @@ function manipulateVideos() {
             }
         }
     });
+}
+
+
+
+
+function onMouseEnter(event) {
+    // mouseEnter handler, add menus to the video
+    
+    //console.log('mouseEnter', this, event);
+    
+    // Append close button
+    //this.appendChild(els.closeButton);
+}
+
+function onMouseLeave(event) {
+    // mouseEnter handler
+    
+    //console.log('mouseLeave', this, event);
+    
+    // Remove close button
+    //this.removeChild(els.closeButton);
+}
+
+function onMouseOver(event) {
+    // mouseEnter handler
+    
+    console.log('mouseOver', this, event);
+    
+    // Only work over iframe elements
+    var iframe = event.relatedTarget;
+    if (iframe.tagName !== 'IFRAME') {
+        iframe = event.target;
+        if (iframe.tagName !== 'IFRAME') {
+            return;
+        }
+    }
+    
+    console.log('ifrmae');
+    
+    // Append close button
+    iframe.parentElement.appendChild(els.closeButton);
 }
 
 function fixedMoveTo(element, destine) {
@@ -277,7 +321,7 @@ function initVideo(swfObject, maskElement) {
     divYoutubeVideos.appendChild(swfObject);
     
     // Move to original position
-    fixedMoveTo(swfObject, div);
+    moveVideos();
 }
 
 function onWindowClick(event) {
@@ -392,6 +436,13 @@ function init() {
     
     // Append the divYoutubeVideos in the placeEl
     placeEl.appendChild(divYoutubeVideos);
+    
+    // Will work on all children elements, don't need lot of events
+    // forget about memory leeks in events without DOM objects...
+    // there is only one event to rule then all! :D
+    divYoutubeVideos.addEventListener('mouseenter', onMouseEnter);
+    divYoutubeVideos.addEventListener('mouseleave', onMouseLeave);
+    divYoutubeVideos.addEventListener('mouseover', onMouseOver);
     
     // Update the window dimensions
     updateDimensions();
