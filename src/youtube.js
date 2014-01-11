@@ -38,6 +38,7 @@ closeButtonEl.addEventListener('click', function () {
         return;
     }
     
+    // There is a place in DOM for me?
     var oldPlaceEl = document.querySelector('#' + placeId);
     if (!oldPlaceEl) {
         return;
@@ -45,10 +46,15 @@ closeButtonEl.addEventListener('click', function () {
     
     // List and append elements to it old place
     Array.prototype.forEach.call(removedNodes, function (element) {
+        console.log('removedNodes', element);
         oldPlaceEl.parentElement.appendChild(element);
     });
     
+    // div has complete his task and now it can die in peace
+    // I see you in the GC dudes
     oldPlaceEl.parentElement.removeChild(oldPlaceEl);
+    
+    // Reset the placeId to generete a new one when new iframe is generated
     videoDiv.dataset.placeId = '';
 });
 
@@ -193,44 +199,44 @@ function isElementInViewport(el) {
     );
 }
 
-function manipulateVideos() {
-    var videos = document.querySelectorAll(videosSelector);
-    Array.prototype.forEach.call(videos, function(element) {
-        // Don't touch video stage
-        if (element.parentElement.className === 'videoStage') return;
-        if (!isElementInViewport(element) && element.parentElement !== divYoutubeVideos) {
-            divYoutubeVideos.insertBefore(element);
+// function manipulateVideos() {
+//     var videos = document.querySelectorAll(videosSelector);
+//     Array.prototype.forEach.call(videos, function(element) {
+//         // Don't touch video stage
+//         if (element.parentElement.className === 'videoStage') return;
+//         if (!isElementInViewport(element) && element.parentElement !== divYoutubeVideos) {
+//             divYoutubeVideos.insertBefore(element);
             
-//             while (element.classList.length !== 1) {
-//                 var clas = element.classList[0];
-//                 if (clas !== 'swfObject') {
-//                     element.classList.remove(clas);
-//                 } else {
-//                     clas = element.classList[1];
-//                     if (clas) {
-//                         element.classList.remove(clas);
-//                     }
-//                 }
-//             }
+// //             while (element.classList.length !== 1) {
+// //                 var clas = element.classList[0];
+// //                 if (clas !== 'swfObject') {
+// //                     element.classList.remove(clas);
+// //                 } else {
+// //                     clas = element.classList[1];
+// //                     if (clas) {
+// //                         element.classList.remove(clas);
+// //                     }
+// //                 }
+// //             }
             
-            storeOriginalValues(element);
-            aiMinimize(element);
-            element.style.position = 'relative';
-            element.style.paddingBottom = '4px';
-            element.style.bottom = '0px';
+//             storeOriginalValues(element);
+//             aiMinimize(element);
+//             element.style.position = 'relative';
+//             element.style.paddingBottom = '4px';
+//             element.style.bottom = '0px';
             
             
-//             element.addEventListener('mouseenter', onMouseEnter);
-//             element.addEventListener('mouseleave', onMouseLeave);
-        }
-        if (element.parentElement === divYoutubeVideos) {
-            if (element.clientWidth !== dimensions.dockArea && element.clientWidth !== (+ element.dataset.originalWidth)) {
+// //             element.addEventListener('mouseenter', onMouseEnter);
+// //             element.addEventListener('mouseleave', onMouseLeave);
+//         }
+//         if (element.parentElement === divYoutubeVideos) {
+//             if (element.clientWidth !== dimensions.dockArea && element.clientWidth !== (+ element.dataset.originalWidth)) {
                 
-                aiMinimize(element);
-            }
-        }
-    });
-}
+//                 aiMinimize(element);
+//             }
+//         }
+//     });
+// }
 
 
 
@@ -353,6 +359,7 @@ function onWindowClick(event) {
     console.log('target', target);
     
     var swfObject;
+    var removedNodes = [];
     
     // create an observer instance
     var observer = new MutationObserver(function (mutations) {
@@ -371,15 +378,25 @@ function onWindowClick(event) {
                 }
             });
             
+            // Add all removedNodes to a list
+            removedNodes.push(mutation.removedNodes);
+            
             // Found our target, store and disconnect the observers
             if (swfObject) {
-                swfObject.dataRemovedNodes = mutation.removedNodes;
-                observer.disconnect();
                 
-                // Workaround to execute only once
-                if (swfObject.dataset.placeId) {
-                    return;
-                }
+                Array.prototype.forEach.call(removedNodes, function (rmNodes) {
+                    if (Array.prototype.every.call(rmNodes, function (node) {
+                        return node !== swfObject;
+                    })) {
+                        swfObject.dataRemovedNodes = rmNodes;
+                    }
+                });
+                observer.disconnect();
+            }
+            
+            // Workaround to execute only once
+            if (swfObject.dataset.placeId) {
+                return;
             }
             
             // Init the video, move to right place and put new mask insted
