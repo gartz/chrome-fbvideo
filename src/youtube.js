@@ -5,6 +5,13 @@ var videosSelector = '.swfObject';
 var placeEl = document.querySelector('#pagelet_dock');
 var destineEl = document.querySelector('#youtubeVideos');
 
+// Browser features needed (27+ || 18+):
+MutationObserver = MutationObserver || webkitMutationObserver;
+if (!MutationObserver) {
+    throw new Error('FLV needs MutationObserver support');
+}
+
+
 var closeButtonEl = document.createElement('a');
 closeButtonEl.setAttribute('data-hover', 'tooltip');
 closeButtonEl.setAttribute('data-tooltip-position', 'below');
@@ -69,20 +76,6 @@ function updateDimensions() {
     dimensions.maxVideoSize = area + AVATAR_WIDTH_AREA;
 }
 
-setTimeout(updateDimensions, 50);
-
-window.addEventListener('load', updateDimensions);
-
-window.addEventListener('resize', function () {
-    updateDimensions()
-    clearTimeout(updateVideoSizeST);
-    setTimeout(function () {
-        manipulateVideos();
-    }, 500);
-});
-
-window.addEventListener('scroll', manipulateVideos);
-
 if (!destineEl) {
     destineEl = document.createElement('div');
     destineEl.setAttribute('id', 'youtubeVideos');
@@ -92,25 +85,28 @@ if (!destineEl) {
     placeEl.appendChild(destineEl);
 }
 
-function storeOriginalValues(element) {
+function storeDimensions(element) {
+    // Store the original dimensions from a element in it dataset
+    
     if (!element.dataset.originalWidth) {
         element.dataset.originalWidth = element.clientWidth;
     }
     if (!element.dataset.originalHeight) {
         element.dataset.originalHeight = element.clientHeight;
     }
+}
+
+
+function storeOriginalValues(element) {
+    storeDimensions(element);
+    
     // Dataset is only for strings, so it must be outside
     if (!element.originalParent) {
         element.originalParent = element.parentElement;
     }
     
     var iframe = element.querySelector('iframe');
-    if (!iframe.dataset.originalWidth) {
-        iframe.dataset.originalWidth = iframe.getAttribute('width');
-    }
-    if (!iframe.dataset.originalHeight) {
-        iframe.dataset.originalHeight = iframe.getAttribute('height');
-    }
+    storeDimensions(iframe);
 }
 
 function squizeVideo(element, width, height) {
@@ -232,3 +228,111 @@ function manipulateVideos() {
         }
     });
 }
+
+function onWindowClick(event) {
+    // If is a /ajax/flash/expand_inline do:
+    
+    // detect the element (do it until found A or BODY)
+    var target = event.target;
+    
+    while (target && target.tagName !== 'A') {
+        target = target.parentElement;
+    }
+    
+    // Isn't an anchor tag
+    if (!target) {
+        return;
+    }
+    
+    // A check if contains ajaxify propertie
+    var ajaxify = target.getAttribute('ajaxify');
+    if (!ajaxify) {
+        return
+    }
+    
+    // Check if contains /ajax/flash/expand_inline
+    if (!ajaxify.contains('/ajax/flash/expand_inline')) {
+        return;
+    }
+    
+    // Find the container base element
+    var container = target.parentElement;
+    while (container && !container.className.contains('clearfix')) {
+        container.parentElement;
+    }
+    
+    console.log(target);
+    console.log('container', container);
+    
+    var swfObject;
+    
+    // create an observer instance
+    var observer = new MutationObserver(function (mutations) {
+        // Search for mutations
+        mutations.forEach(function (mutation) {
+            // We need to know if childList has changed
+            if (mutation.type !== 'childList') {
+                return;
+            }
+            
+            // Search the swfObject
+            Array.prototype.forEach.call(mutation.addedNodes, function (el) {
+                if (el.className.contains('swfObject')) {
+                    swfObject = el;
+                }
+            });
+            
+            // Found our target, store and disconnect the observers
+            if (swfObject) {
+                swfObject.dataRemovedNodes = mutation.removedNodes;
+                observer.disconnect();
+            }
+            
+            // Store the dimensions
+            storeDimensions(swfObject);
+            
+            // Insert the mask div with dimensions with an ID
+            var id = 'swfObject' + Date.now();
+            var div = document.createElement('div');
+            div.id = id;
+            div.style.width = swfObject.clientWidth + 'px';
+            div.style.height = swfObject.clientHeight + 'px';
+            container.appendChild(div);
+            
+            
+            // Store the ID
+            swfObject.dataset.placeId = id;
+            
+            // Move the element to videosList
+            destineEl.appendChild(swfObject);
+        });
+    });
+    
+    // configuration of the observer:
+    var config = { attributes: false, childList: true, characterData: false };
+     
+    // pass in the target node, as well as the observer options
+    observer.observe(container, config);
+}
+
+// ------------- Listeners -------------
+
+// After DOM load, store the window dimensions
+window.addEventListener('load', updateDimensions);
+
+// Workaround if DOM already loaded
+setTimeout(updateDimensions, 50);
+
+// When resize update the window dimensions
+window.addEventListener('resize', function () {
+    updateDimensions()
+    clearTimeout(updateVideoSizeST);
+    setTimeout(function () {
+        manipulateVideos();
+    }, 500);
+});
+
+// Change the video positions becouse user used scroll
+window.addEventListener('scroll', manipulateVideos);
+
+document.addEventListener('click', onWindowClick, true);
