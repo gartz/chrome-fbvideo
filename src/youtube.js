@@ -41,9 +41,21 @@ divButtons.appendChild(commentsButtonEl);
 if (!divSwfObjects) {
     divSwfObjects = document.createElement('div');
     divSwfObjects.setAttribute('id', 'swfObjects');
-    divSwfObjects.style.position = 'fixed';
-    divSwfObjects.style.bottom = '28px';
-    divSwfObjects.style.left = '0px';
+    
+    var fbChatSidebar = document.querySelector('.fbChatSidebar');
+    if (!fbChatSidebar) {
+        return;
+    }
+    
+    sidebarBounding = fbChatSidebar.getBoundingClientRect()
+    
+    var sidebarRight = Math.round(sidebarBounding.left + sidebarBounding.width);
+    
+    if (sidebarRight === document.body.clientWidth) {
+        return;
+    }
+    
+    divSwfObjects.style.left = sidebarRight + 'px';
 }
 
 function createViewPortDiv(swfObject) {
@@ -132,7 +144,7 @@ function onNotResizeButtonClick() {
     if (notResize !== 'active') {
         videoDiv.setAttribute('data-notresize', 'active');
     } else {
-        videoDiv.setAttribute('data-notresize', '');
+        videoDiv.removeAttribute('data-notresize');
     }
 }
 
