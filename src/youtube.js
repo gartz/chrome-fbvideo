@@ -105,28 +105,24 @@ function isElementInViewport(el) {
     );
 }
 
-function onMouseEnter(event) {
-    // mouseEnter handler, add menus to the video
+function mouseOverWorkaround(target) {
+    // Workaround for iframe mouseOver
+    var masks = divSwfObjects.querySelectorAll('.mask');
+    Array.prototype.forEach.call(masks, function (el) {
+        el.style.display = 'block';
+    });
     
-    console.log('mouseEnter', this, event);
+    if (target.className !== 'mask') {
+        target = target.querySelector('.mask');
+    }
     
-    // Append close button
-    //this.appendChild(els.closeButton);
-}
-
-function onMouseLeave(event) {
-    // mouseEnter handler
-    
-    console.log('mouseLeave', this, event);
-    
-    // Remove close button
-    //this.removeChild(els.closeButton);
+    if (target) {
+        target.style.display = 'none';
+    }
 }
 
 function onMouseOver(event) {
     // mouseEnter handler
-    
-    console.log('mouseOver', this, event);
     
     // Only work over iframe elements
     var target = event.relatedTarget;
@@ -143,15 +139,9 @@ function onMouseOver(event) {
         }
     }
     
-    Array.prototype.forEach.call(this.querySelectorAll('.mask'), function (el) {
-        el.style.display = 'block';
-    });
+    console.log('mouseOver', this, event);
     
-    if (target.className === 'mask') {
-        target.style.display = 'none';
-    }
-    
-    console.log('ifrmae');
+    mouseOverWorkaround(target);
     
     // Append close button
     target.parentElement.appendChild(els.closeButton);
@@ -370,8 +360,6 @@ function init() {
     // Will work on all children elements, don't need lot of events
     // forget about memory leeks in events without DOM objects...
     // there is only one event to rule then all! :D
-    divSwfObjects.addEventListener('mouseenter', onMouseEnter);
-    divSwfObjects.addEventListener('mouseleave', onMouseLeave);
     divSwfObjects.addEventListener('mouseover', onMouseOver);
     
     // User already watching a video, need to move it
