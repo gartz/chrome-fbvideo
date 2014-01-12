@@ -86,107 +86,12 @@ var dimensions = {
 }
 
 
-var updateVideoSizeST;
-function updateDimensions() {
-    var area = els.body.clientWidth - els.content.clientWidth;
-    var pageletTicker = document.querySelector('#pagelet_ticker');
-    if (pageletTicker) {
-        area -= pageletTicker.clientWidth;
-    }
-    if (area < 0) {
-        area = leftCol.clientWidth;
-    } else {
-        // Only left size of the area plus leftCol width
-        area = (area / 2) + leftCol.clientWidth;
-    }
-    
-    dimensions.dockArea = area;
-    dimensions.maxVideoSize = area + AVATAR_WIDTH_AREA;
-}
-
 if (!divSwfObjects) {
     divSwfObjects = document.createElement('div');
     divSwfObjects.setAttribute('id', 'swfObjects');
     divSwfObjects.style.position = 'fixed';
     divSwfObjects.style.bottom = '28px';
     divSwfObjects.style.left = '0px';
-}
-
-function storeDimensions(element) {
-    // Store the original dimensions from a element in it dataset
-    
-    if (!element.dataset.originalWidth) {
-        element.dataset.originalWidth = element.clientWidth;
-    }
-    if (!element.dataset.originalHeight) {
-        element.dataset.originalHeight = element.clientHeight;
-    }
-}
-
-
-function storeOriginalValues(element) {
-    storeDimensions(element);
-    
-    // Dataset is only for strings, so it must be outside
-    if (!element.originalParent) {
-        element.originalParent = element.parentElement;
-    }
-    
-    var iframe = element.querySelector('iframe');
-    storeDimensions(iframe);
-}
-
-function squizeVideo(element, width, height) {
-    if (!width) {
-        width = dimensions.defaultWidth;
-    }
-    if (!height) {
-        height = dimensions.defaultHeight
-    }
-    
-    // Resize elements to the divSwfObjects size
-    element.style.width = width + 'px';
-    element.style.height = height + 'px';
-    
-    var iframe = element.querySelector('iframe');
-    
-    iframe.setAttribute('width', width);
-    iframe.setAttribute('height', height);
-}
-
-function videoToOriginalSize(element) {
-    element.style.width = element.dataset.originalWidth + 'px';
-    element.style.height = element.dataset.originalHeight + 'px';
-    iframe = element.querySelector('iframe');
-    iframe.setAttribute('width', iframe.dataset.originalWidth);
-    iframe.setAttribute('height', iframe.dataset.originalHeight);
-}
-
-function elementWidth(element) {
-    var max = (dimensions.dockArea > element.dataset.originalWidth) 
-                    ? element.dataset.originalWidth
-                    : dimensions.dockArea;
-    return max;
-}
-
-function aiMinimize(element) {
-    // If there is only one video and the screensize permite it's original size
-    // will not resize
-    
-    var videos = document.querySelectorAll(videosSelector);
-    
-    // If only one video
-    if (videos.length === 1) {
-        // There is area available for original size?
-        if (elementWidth(element) === (+ element.dataset.originalWidth)) {
-            videoToOriginalSize(element);
-        } else {
-            // if not, so squizeVideo
-            squizeVideo(element, elementWidth(element), (+ element.dataset.originalHeight));
-        }
-    } else {
-        squizeVideo(element, elementWidth(element));
-    }
 }
 
 function isElementInViewport(el) {
@@ -224,19 +129,45 @@ function onMouseOver(event) {
     console.log('mouseOver', this, event);
     
     // Only work over iframe elements
-    var iframe = event.relatedTarget;
-    if (iframe.tagName !== 'IFRAME') {
-        iframe = event.target;
-        if (iframe.tagName !== 'IFRAME') {
+    var target = event.relatedTarget;
+    if (target.tagName !== 'IFRAME') {
+        target = event.target;
+        if (target.tagName !== 'IFRAME') {
+            target = event.relatedTarget;
+        }
+    }
+    if (target.className !== 'mask') {
+        target = event.target;
+        if (target.className !== 'mask') {
             return;
         }
+    }
+    
+    Array.prototype.forEach.call(this.querySelectorAll('.mask'), function (el) {
+        el.style.display = 'block';
+    });
+    
+    if (target.className === 'mask') {
+        target.style.display = 'none';
     }
     
     console.log('ifrmae');
     
     // Append close button
-    iframe.parentElement.appendChild(els.closeButton);
+    target.parentElement.appendChild(els.closeButton);
 }
+
+function storeDimensions(element) {
+    // Store the original dimensions from a element in it dataset
+    
+    if (!element.dataset.originalWidth) {
+        element.dataset.originalWidth = element.clientWidth;
+    }
+    if (!element.dataset.originalHeight) {
+        element.dataset.originalHeight = element.clientHeight;
+    }
+}
+
 
 function fixedMoveTo(element, destine) {
     // Dock the target in the same place as destine
@@ -269,6 +200,17 @@ function createViewPortDiv(swfObject) {
     return div;
 }
 
+function createWorkaroundDiv() {
+    var div = document.createElement('div');
+    div.style.width = '100%';
+    div.style.height = '100%';
+    div.style.position = 'absolute';
+    div.style.top = '0';
+    div.style.left = '0';
+    div.className = 'mask';
+    return div;
+}
+
 function initVideo(swfObject, maskElement) {
     // Execute all the procedure to init a video element
     
@@ -282,8 +224,15 @@ function initVideo(swfObject, maskElement) {
     // Store the ID
     swfObject.dataset.placeId = div.id;
     
+    // Create workAroundMaskDiv
+    swfObject.appendChild(createWorkaroundDiv());
+    
     // Move the element to videosList
-    divSwfObjects.appendChild(swfObject);
+    if (divSwfObjects.children.length > 0) {
+        divSwfObjects.insertBefore(swfObject, divSwfObjects.children[0]);
+    } else {
+        divSwfObjects.insertBefore(swfObject);
+    }
     
     // Move to original position
     moveVideos();
@@ -333,15 +282,20 @@ function onWindowClick(event) {
             
             // Search the swfObject
             Array.prototype.forEach.call(mutation.addedNodes, function (el) {
+                console.log('Added nodes:', el);
                 if (el.className.contains('swfObject')) {
                     swfObject = el;
+                } else {
+                    // Search on childrens:
+                    swfObject = el.querySelector('.swfObject');
+                }
+                if (!swfObject && el.parentElement.className.contains('swfObject')) {
+                    swfObject = el.parentElement;
                 }
             });
 
             // Check if the parentElement doesn't exist and is the first removedNodes
-            if (Array.prototype.every.call(mutation.removedNodes, function (node) {
-                return !node.parentElement;
-            }) && !removedNodes) {
+            if (!removedNodes) {
                 removedNodes = mutation.removedNodes;
                 restorePlace = mutation.target;
             }
@@ -353,16 +307,13 @@ function onWindowClick(event) {
 
             // Found our target, store and disconnect the observers
             if (swfObject && removedNodes) {
+                console.log('Mutation disconnect');
                 observer.disconnect();
+                
+                if (!swfObject.dataset.placeId)
+                // Init the video, move to right place and put new mask insted
+                initVideo(swfObject, swfObject.parentElement);
             }
-            
-            // Workaround to execute only once
-            if (swfObject.dataset.placeId) {
-                return;
-            }
-            
-            // Init the video, move to right place and put new mask insted
-            initVideo(swfObject, mutation.target);
         });
     });
     
@@ -422,9 +373,6 @@ function init() {
     divSwfObjects.addEventListener('mouseenter', onMouseEnter);
     divSwfObjects.addEventListener('mouseleave', onMouseLeave);
     divSwfObjects.addEventListener('mouseover', onMouseOver);
-    
-    // Update the window dimensions
-    updateDimensions();
     
     // User already watching a video, need to move it
     var videos = document.querySelectorAll('#contentCol .swfObject');
