@@ -12,7 +12,7 @@ if (!MutationObserver) {
     throw new Error('FLV needs MutationObserver support');
 }
 
-
+// Close button
 var closeButtonEl = document.createElement('a');
 closeButtonEl.setAttribute('data-hover', 'tooltip');
 closeButtonEl.setAttribute('data-tooltip-position', 'below');
@@ -33,6 +33,7 @@ closeButtonEl.addEventListener('click', function () {
     
     // There is cache from old element?
     var removedNodes = videoDiv.dataRemovedNodes;
+    var restorePlace = videoDiv.dataRestorePlace;
     var placeId = videoDiv.dataset.placeId;
     if (!removedNodes || removedNodes.length === 0 || !placeId) {
         return;
@@ -46,8 +47,8 @@ closeButtonEl.addEventListener('click', function () {
     
     // List and append elements to it old place
     Array.prototype.forEach.call(removedNodes, function (element) {
-        console.log('removedNodes', element);
-        oldPlaceEl.parentElement.appendChild(element);
+        console.log('restoring', restorePlace, 'to', element);
+        restorePlace.appendChild(element);
     });
     
     // div has complete his task and now it can die in peace
@@ -64,7 +65,7 @@ closeButtonDiv.appendChild(closeButtonEl);
 closeButtonDiv.style.position = 'absolute';
 closeButtonDiv.style.width = '18px';
 closeButtonDiv.style.height = '50px';
-closeButtonDiv.style.right = '-18px';
+closeButtonDiv.style.right = '-19px';
 closeButtonDiv.style.top = '0px';
 closeButtonDiv.style.background = 'white';
 
@@ -194,57 +195,15 @@ function isElementInViewport(el) {
     return (
         rect.top >= 0 &&
         rect.left >= 0 &&
-        rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) && /*or $(window).height() */
-        rect.right <= (window.innerWidth || document.documentElement.clientWidth) /*or $(window).width() */
+        rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+        rect.right <= (window.innerWidth || document.documentElement.clientWidth)
     );
 }
-
-// function manipulateVideos() {
-//     var videos = document.querySelectorAll(videosSelector);
-//     Array.prototype.forEach.call(videos, function(element) {
-//         // Don't touch video stage
-//         if (element.parentElement.className === 'videoStage') return;
-//         if (!isElementInViewport(element) && element.parentElement !== divYoutubeVideos) {
-//             divYoutubeVideos.insertBefore(element);
-            
-// //             while (element.classList.length !== 1) {
-// //                 var clas = element.classList[0];
-// //                 if (clas !== 'swfObject') {
-// //                     element.classList.remove(clas);
-// //                 } else {
-// //                     clas = element.classList[1];
-// //                     if (clas) {
-// //                         element.classList.remove(clas);
-// //                     }
-// //                 }
-// //             }
-            
-//             storeOriginalValues(element);
-//             aiMinimize(element);
-//             element.style.position = 'relative';
-//             element.style.paddingBottom = '4px';
-//             element.style.bottom = '0px';
-            
-            
-// //             element.addEventListener('mouseenter', onMouseEnter);
-// //             element.addEventListener('mouseleave', onMouseLeave);
-//         }
-//         if (element.parentElement === divYoutubeVideos) {
-//             if (element.clientWidth !== dimensions.dockArea && element.clientWidth !== (+ element.dataset.originalWidth)) {
-                
-//                 aiMinimize(element);
-//             }
-//         }
-//     });
-// }
-
-
-
 
 function onMouseEnter(event) {
     // mouseEnter handler, add menus to the video
     
-    //console.log('mouseEnter', this, event);
+    console.log('mouseEnter', this, event);
     
     // Append close button
     //this.appendChild(els.closeButton);
@@ -253,7 +212,7 @@ function onMouseEnter(event) {
 function onMouseLeave(event) {
     // mouseEnter handler
     
-    //console.log('mouseLeave', this, event);
+    console.log('mouseLeave', this, event);
     
     // Remove close button
     //this.removeChild(els.closeButton);
@@ -359,7 +318,8 @@ function onWindowClick(event) {
     console.log('target', target);
     
     var swfObject;
-    var removedNodes = [];
+    var removedNodes;
+    var restorePlace;
     
     // create an observer instance
     var observer = new MutationObserver(function (mutations) {
@@ -377,20 +337,22 @@ function onWindowClick(event) {
                     swfObject = el;
                 }
             });
-            
-            // Add all removedNodes to a list
-            removedNodes.push(mutation.removedNodes);
-            
+
+            // Check if the parentElement doesn't exist and is the first removedNodes
+            if (Array.prototype.every.call(mutation.removedNodes, function (node) {
+                return !node.parentElement;
+            }) && !removedNodes) {
+                removedNodes = mutation.removedNodes;
+                restorePlace = mutation.target;
+            }
+
+            if (swfObject && removedNodes) {
+                swfObject.dataRemovedNodes = removedNodes;
+                swfObject.dataRestorePlace = restorePlace;
+            }
+
             // Found our target, store and disconnect the observers
-            if (swfObject) {
-                
-                Array.prototype.forEach.call(removedNodes, function (rmNodes) {
-                    if (Array.prototype.every.call(rmNodes, function (node) {
-                        return node !== swfObject;
-                    })) {
-                        swfObject.dataRemovedNodes = rmNodes;
-                    }
-                });
+            if (swfObject && removedNodes) {
                 observer.disconnect();
             }
             
