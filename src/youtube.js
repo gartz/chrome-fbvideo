@@ -1,9 +1,6 @@
-var LEFT_COL_SIZE = 180;
+var MIN_SWF_WIDTH = 180;
 var AVATAR_WIDTH_AREA = 100;
-var HEIGHT = 60;
-var videosSelector = '.swfObject';
-var placeEl = document.querySelector('#pagelet_dock');
-
+var MIN_SWF_HEIGHT = 60;
 var divSwfObjects = document.querySelector('#swfObjects');
 
 // Browser features needed (27+ || 18+):
@@ -12,19 +9,85 @@ if (!MutationObserver) {
     throw new Error('FLV needs MutationObserver support');
 }
 
+// Creating DOM elements
+
 // Close button
 var closeButtonEl = document.createElement('a');
-closeButtonEl.setAttribute('data-hover', 'tooltip');
-closeButtonEl.setAttribute('data-tooltip-position', 'below');
-closeButtonEl.setAttribute('data-tooltip-alighn', 'right');
-closeButtonEl.setAttribute('class', 'closeTheater');
+closeButtonEl.setAttribute('class', 'close');
 closeButtonEl.setAttribute('href', '#');
-closeButtonEl.setAttribute('role', 'button');
-closeButtonEl.style.position = 'absolute';
-closeButtonEl.style.right = '3px';
-closeButtonEl.style.top = '0px';
+closeButtonEl.addEventListener('click', onCloseButtonClick);
 
-closeButtonEl.addEventListener('click', function () {
+// Not resize button
+var notResizeButtonEl = document.createElement('a');
+notResizeButtonEl.setAttribute('class', 'notResize');
+notResizeButtonEl.setAttribute('href', '#');
+notResizeButtonEl.addEventListener('click', onNotResizeButtonClick);
+
+// Not resize button
+var commentsButtonEl = document.createElement('a');
+commentsButtonEl.setAttribute('class', 'comments');
+commentsButtonEl.setAttribute('href', '#');
+commentsButtonEl.addEventListener('click', function () {
+    alert('Goto comments');
+});
+
+var divButtons = document.createElement('div');
+divButtons.setAttribute('class', 'buttonsArea');
+divButtons.appendChild(closeButtonEl);
+divButtons.appendChild(notResizeButtonEl);
+divButtons.appendChild(commentsButtonEl);
+
+
+if (!divSwfObjects) {
+    divSwfObjects = document.createElement('div');
+    divSwfObjects.setAttribute('id', 'swfObjects');
+    divSwfObjects.style.position = 'fixed';
+    divSwfObjects.style.bottom = '28px';
+    divSwfObjects.style.left = '0px';
+}
+
+function createViewPortDiv(swfObject) {
+    var id = 'swfObject' + Date.now();
+    var div = document.createElement('div');
+    div.id = id;
+    div.style.width = swfObject.clientWidth + 'px';
+    div.style.height = swfObject.clientHeight + 'px';
+    return div;
+}
+
+// List useful cached elements, to don't run query every time
+var els = {
+    body: this.document.body,
+    content: document.querySelector('#content'),
+    leftCol: document.querySelector('#leftCol'),
+    buttons: divButtons
+};
+
+var dimensions = {
+    defaultWidth: MIN_SWF_WIDTH,
+    defaultHeight: MIN_SWF_HEIGHT,
+    dockArea: MIN_SWF_WIDTH,
+    maxVideoSize: MIN_SWF_WIDTH + AVATAR_WIDTH_AREA,
+    fbRightBar: 1546
+}
+
+
+// HELPERS
+
+function isElementInViewport(el) {
+    var rect = el.getBoundingClientRect();
+
+    return (
+        rect.top >= 0 &&
+        rect.left >= 0 &&
+        rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+        rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+    );
+}
+
+// MOUSE EVENTS:
+
+function onCloseButtonClick() {
     // onCLick remove video from the left list
     var videoDiv = this.parentElement
         .parentElement;
@@ -57,67 +120,19 @@ closeButtonEl.addEventListener('click', function () {
     
     // Reset the placeId to generete a new one when new iframe is generated
     videoDiv.dataset.placeId = '';
-});
-
-var closeButtonDiv = document.createElement('div');
-closeButtonDiv.setAttribute('class', 'fbPhotoSnowlift');
-closeButtonDiv.appendChild(closeButtonEl);
-closeButtonDiv.style.position = 'absolute';
-closeButtonDiv.style.width = '18px';
-closeButtonDiv.style.height = '50px';
-closeButtonDiv.style.right = '-19px';
-closeButtonDiv.style.top = '0px';
-closeButtonDiv.style.background = 'white';
-
-// List useful cached elements, to don't run query every time
-var els = {
-    body: this.document.body,
-    content: document.querySelector('#content'),
-    leftCol: document.querySelector('#leftCol'),
-    closeButton: closeButtonDiv
-};
-
-var dimensions = {
-    defaultWidth: LEFT_COL_SIZE,
-    defaultHeight: HEIGHT,
-    dockArea: LEFT_COL_SIZE,
-    maxVideoSize: LEFT_COL_SIZE + AVATAR_WIDTH_AREA,
-    fbRightBar: 1546
 }
 
-
-if (!divSwfObjects) {
-    divSwfObjects = document.createElement('div');
-    divSwfObjects.setAttribute('id', 'swfObjects');
-    divSwfObjects.style.position = 'fixed';
-    divSwfObjects.style.bottom = '28px';
-    divSwfObjects.style.left = '0px';
-}
-
-function isElementInViewport(el) {
-    var rect = el.getBoundingClientRect();
-
-    return (
-        rect.top >= 0 &&
-        rect.left >= 0 &&
-        rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
-        rect.right <= (window.innerWidth || document.documentElement.clientWidth)
-    );
-}
-
-function mouseOverWorkaround(target) {
-    // Workaround for iframe mouseOver
-    var masks = divSwfObjects.querySelectorAll('.mask');
-    Array.prototype.forEach.call(masks, function (el) {
-        el.style.display = 'block';
-    });
+function onNotResizeButtonClick() {
+    // onCLick remove video from the left list
+    var videoDiv = this.parentElement
+        .parentElement;
+        
+    var notResize = videoDiv.getAttribute('data-notresize');
     
-    if (target.className !== 'mask') {
-        target = target.querySelector('.mask');
-    }
-    
-    if (target) {
-        target.style.display = 'none';
+    if (notResize !== 'active') {
+        videoDiv.setAttribute('data-notresize', 'active');
+    } else {
+        videoDiv.setAttribute('data-notresize', '');
     }
 }
 
@@ -144,7 +159,25 @@ function onMouseOver(event) {
     mouseOverWorkaround(target);
     
     // Append close button
-    target.parentElement.appendChild(els.closeButton);
+    target.parentElement.appendChild(els.buttons);
+}
+
+// Compatibility workaround methods:
+
+function mouseOverWorkaround(target) {
+    // Workaround for iframe mouseOver
+    var masks = divSwfObjects.querySelectorAll('.mask');
+    Array.prototype.forEach.call(masks, function (el) {
+        el.style.display = 'block';
+    });
+    
+    if (target.className !== 'mask') {
+        target = target.querySelector('.mask');
+    }
+    
+    if (target) {
+        target.style.display = 'none';
+    }
 }
 
 function storeDimensions(element) {
@@ -158,6 +191,18 @@ function storeDimensions(element) {
     }
 }
 
+function createWorkaroundDiv() {
+    var div = document.createElement('div');
+    div.style.width = '100%';
+    div.style.height = '100%';
+    div.style.position = 'absolute';
+    div.style.top = '0';
+    div.style.left = '0';
+    div.className = 'mask';
+    return div;
+}
+
+// Moving around the video elements
 
 function fixedMoveTo(element, destine) {
     // Dock the target in the same place as destine
@@ -179,26 +224,6 @@ function resetFixed(element) {
     element.style.position = 'relative';
     element.style.paddingBottom = '4px';
     element.style.bottom = '0px';
-}
-
-function createViewPortDiv(swfObject) {
-    var id = 'swfObject' + Date.now();
-    var div = document.createElement('div');
-    div.id = id;
-    div.style.width = swfObject.clientWidth + 'px';
-    div.style.height = swfObject.clientHeight + 'px';
-    return div;
-}
-
-function createWorkaroundDiv() {
-    var div = document.createElement('div');
-    div.style.width = '100%';
-    div.style.height = '100%';
-    div.style.position = 'absolute';
-    div.style.top = '0';
-    div.style.left = '0';
-    div.className = 'mask';
-    return div;
 }
 
 function initVideo(swfObject, maskElement) {
@@ -354,8 +379,11 @@ function moveVideos() {
 function init() {
     // Execute onLoad or right after
     
+    // Find divPageletDock element
+    var divPageletDock = document.querySelector('#pagelet_dock');
+    
     // Append the divSwfObjects in the placeEl
-    placeEl.appendChild(divSwfObjects);
+    divPageletDock.appendChild(divSwfObjects);
     
     // Will work on all children elements, don't need lot of events
     // forget about memory leeks in events without DOM objects...

@@ -21,6 +21,13 @@
   "permissions": [
     "tabs", "http://*.facebook.com/*", "https://*.facebook.com/*"
   ],
+  "content_scripts": [
+    {
+      "matches": ["http://*.facebook.com/*", "https://*.facebook.com/*"],
+      "css": ["style.css"],
+      "js": ["youtube.js"]
+    }
+  ],
   "page_action": {
     "default_icon": {
       "19": "images/icon19.png",

@@ -59,8 +59,8 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
       , tabId: tab.id
     });
     
-    chrome.tabs.executeScript(tab.id, {
-      file: 'youtube.js'
-    });
+//     chrome.tabs.executeScript(tab.id, {
+//       file: 'youtube.js'
+//     });
   }
 });
