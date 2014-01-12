@@ -4,7 +4,7 @@ var HEIGHT = 60;
 var videosSelector = '.swfObject';
 var placeEl = document.querySelector('#pagelet_dock');
 
-var divYoutubeVideos = document.querySelector('#youtubeVideos');
+var divSwfObjects = document.querySelector('#swfObjects');
 
 // Browser features needed (27+ || 18+):
 MutationObserver = MutationObserver || webkitMutationObserver;
@@ -104,12 +104,12 @@ function updateDimensions() {
     dimensions.maxVideoSize = area + AVATAR_WIDTH_AREA;
 }
 
-if (!divYoutubeVideos) {
-    divYoutubeVideos = document.createElement('div');
-    divYoutubeVideos.setAttribute('id', 'youtubeVideos');
-    divYoutubeVideos.style.position = 'fixed';
-    divYoutubeVideos.style.bottom = '28px';
-    divYoutubeVideos.style.left = '0px';
+if (!divSwfObjects) {
+    divSwfObjects = document.createElement('div');
+    divSwfObjects.setAttribute('id', 'swfObjects');
+    divSwfObjects.style.position = 'fixed';
+    divSwfObjects.style.bottom = '28px';
+    divSwfObjects.style.left = '0px';
 }
 
 function storeDimensions(element) {
@@ -144,7 +144,7 @@ function squizeVideo(element, width, height) {
         height = dimensions.defaultHeight
     }
     
-    // Resize elements to the divYoutubeVideos size
+    // Resize elements to the divSwfObjects size
     element.style.width = width + 'px';
     element.style.height = height + 'px';
     
@@ -283,7 +283,7 @@ function initVideo(swfObject, maskElement) {
     swfObject.dataset.placeId = div.id;
     
     // Move the element to videosList
-    divYoutubeVideos.appendChild(swfObject);
+    divSwfObjects.appendChild(swfObject);
     
     // Move to original position
     moveVideos();
@@ -391,7 +391,7 @@ function moveVideos() {
     // Move videos in the screen, if it's visible on DOM, keep on timeline
     // but when not, move it to the left corner with other videos
     
-    var videos = divYoutubeVideos.children;
+    var videos = divSwfObjects.children;
     
     Array.prototype.forEach.call(videos, function (element) {
         // There is original position on DOM?
@@ -413,15 +413,15 @@ function moveVideos() {
 function init() {
     // Execute onLoad or right after
     
-    // Append the divYoutubeVideos in the placeEl
-    placeEl.appendChild(divYoutubeVideos);
+    // Append the divSwfObjects in the placeEl
+    placeEl.appendChild(divSwfObjects);
     
     // Will work on all children elements, don't need lot of events
     // forget about memory leeks in events without DOM objects...
     // there is only one event to rule then all! :D
-    divYoutubeVideos.addEventListener('mouseenter', onMouseEnter);
-    divYoutubeVideos.addEventListener('mouseleave', onMouseLeave);
-    divYoutubeVideos.addEventListener('mouseover', onMouseOver);
+    divSwfObjects.addEventListener('mouseenter', onMouseEnter);
+    divSwfObjects.addEventListener('mouseleave', onMouseLeave);
+    divSwfObjects.addEventListener('mouseover', onMouseOver);
     
     // Update the window dimensions
     updateDimensions();
