@@ -37,25 +37,9 @@ divButtons.appendChild(closeButtonEl);
 divButtons.appendChild(notResizeButtonEl);
 divButtons.appendChild(commentsButtonEl);
 
-
 if (!divSwfObjects) {
     divSwfObjects = document.createElement('div');
     divSwfObjects.setAttribute('id', 'swfObjects');
-    
-    var fbChatSidebar = document.querySelector('.fbChatSidebar');
-    if (!fbChatSidebar) {
-        return;
-    }
-    
-    sidebarBounding = fbChatSidebar.getBoundingClientRect()
-    
-    var sidebarRight = Math.round(sidebarBounding.left + sidebarBounding.width);
-    
-    if (sidebarRight === document.body.clientWidth) {
-        return;
-    }
-    
-    divSwfObjects.style.left = sidebarRight + 'px';
 }
 
 function createViewPortDiv(swfObject) {
@@ -388,6 +372,24 @@ function moveVideos() {
     });
 }
 
+function swfObjectsUpdatePosition() {
+    var fbChatSidebar = document.querySelector('.fbChatSidebar');
+    if (!fbChatSidebar) {
+        return;
+    }
+    
+    sidebarBounding = fbChatSidebar.getBoundingClientRect()
+    
+    var sidebarRight = Math.round(sidebarBounding.left + sidebarBounding.width);
+    
+    if (sidebarRight === document.body.clientWidth) {
+        return;
+    }
+    
+    // This is for the new Facebook interface, need to update with resize event
+    divSwfObjects.style.left = sidebarRight + 'px';
+}
+
 function init() {
     // Execute onLoad or right after
     
@@ -411,6 +413,17 @@ function init() {
         // Init the video, move to right place and put new mask insted
         initVideo(element, element.parentElement);
     });
+    
+    // Update docking position
+    swfObjectsUpdatePosition();
+    
+    // Change the video positions becouse user used scroll or resize window
+    window.addEventListener('scroll', moveVideos);
+    window.addEventListener('resize', moveVideos);
+    window.addEventListener('resize', swfObjectsUpdatePosition);
+    window.addEventListener('popstate', moveVideos);
+    
+    document.addEventListener('click', onWindowClick, true);
 }
 
 // ------------- Listeners -------------
@@ -429,9 +442,3 @@ setTimeout(init, 50);
 //         manipulateVideos();
 //     }, 500);
 // });
-
-// Change the video positions becouse user used scroll or resize window
-window.addEventListener('scroll', moveVideos);
-window.addEventListener('resize', moveVideos);
-
-document.addEventListener('click', onWindowClick, true);
