@@ -16,9 +16,9 @@ Follow the link to [Chrome Store](https://chrome.google.com/webstore/detail/face
 TODO:
 -----
 
-* Button to keep the video in original size display mode
-* Change the iframe to a embed youtube element
-* Add vídeos wached in friends last activities when it fadeout
+* Fix integration with videos wached in friends last activities (need always move to swfObjects as relative position)
+* Add comment button
+* Add resize on mouse over?
 
 Why the name:
 -------------
