@@ -10,6 +10,15 @@ if (!MutationObserver) {
     throw new Error('FLV needs MutationObserver support');
 }
 
+// Shim for contains in old ES6 nom compatible chrome versions
+if (!String.prototype.contains) {
+	String.prototype.contains = function(searchString) {
+		var position = arguments.length > 1 ? arguments[1] : undefined;
+		// Somehow this trick makes method 100% compat with the spec.
+		return String.prototype.indexOf.call(this, searchString, position) !== -1;
+	}
+}
+
 // Creating DOM elements
 
 // Close button
@@ -36,7 +45,7 @@ var divButtons = document.createElement('div');
 divButtons.setAttribute('class', 'buttonsArea');
 divButtons.appendChild(closeButtonEl);
 divButtons.appendChild(notResizeButtonEl);
-divButtons.appendChild(commentsButtonEl);
+//divButtons.appendChild(commentsButtonEl);
 
 if (!divSwfObjects) {
     divSwfObjects = document.createElement('div');
@@ -417,6 +426,8 @@ function minimizeVideos() {
     if (!leftCol) {
         return;
     }
+    
+    //TODO: If there isn't leftCol, use fbChatSidebar vs content area (new fb)
 
     var leftColBounding = leftCol.getBoundingClientRect();
 
@@ -431,6 +442,18 @@ function minimizeVideos() {
         // There is original position on DOM?
 
         if (element.getAttribute('data-notresize') === 'active') {
+            resizeVideo(element, {
+                width: originalWidth
+            });
+            return;
+        }
+        
+        // Is on original position
+        var placeElement = document.querySelector('#' + element.dataset.placeId);
+        if (placeElement && isElementInViewport(placeElement)) {
+            resizeVideo(element, {
+                width: originalWidth
+            });
             return;
         }
 

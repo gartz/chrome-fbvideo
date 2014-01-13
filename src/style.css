@@ -10,6 +10,7 @@
 #swfObjects a.comments {
     background-image: url("data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KCgo8IS0tIFRoZSBpY29uIGNhbiBiZSB1c2VkIGZyZWVseSBpbiBib3RoIHBlcnNvbmFsIGFuZCBjb21tZXJjaWFsIHByb2plY3RzIHdpdGggbm8gYXR0cmlidXRpb24gcmVxdWlyZWQsIGJ1dCBhbHdheXMgYXBwcmVjaWF0ZWQuIApZb3UgbWF5IE5PVCBzdWItbGljZW5zZSwgcmVzZWxsLCByZW50LCByZWRpc3RyaWJ1dGUgb3Igb3RoZXJ3aXNlIHRyYW5zZmVyIHRoZSBpY29uIHdpdGhvdXQgZXhwcmVzcyB3cml0dGVuIHBlcm1pc3Npb24gZnJvbSBpY29ubW9uc3RyLmNvbSAtLT4KCgo8IURPQ1RZUEUgc3ZnIFBVQkxJQyAiLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4iICJodHRwOi8vd3d3LnczLm9yZy9HcmFwaGljcy9TVkcvMS4xL0RURC9zdmcxMS5kdGQiPgoKPHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IgoKCSB3aWR0aD0iNTEycHgiIGhlaWdodD0iNTEycHgiIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiBlbmFibGUtYmFja2dyb3VuZD0ibmV3IDAgMCA1MTIgNTEyIiB4bWw6c3BhY2U9InByZXNlcnZlIj4KCjxwYXRoIGlkPSJsaXN0LXZpZXctaWNvbiIgZD0iTTQ2MiwxMDguODU3SDUwVjUwaDQxMlYxMDguODU3eiBNNDYyLDE2Ny43MTRINTB2NTguODU3aDQxMlYxNjcuNzE0eiBNNDYyLDI4NS40MjlINTB2NTguODU3aDQxMgoKCVYyODUuNDI5eiBNNDYyLDQwMy4xNDNINTBWNDYyaDQxMlY0MDMuMTQzeiIvPgoKPC9zdmc+Cgo=");
     background-size: 100% 100%;
+    display: none;
 }
 
 #swfObjects .buttonsArea a:hover {
@@ -33,9 +34,10 @@
 }
 
 #swfObjects .buttonsArea {
+    border-bottom-right-radius: 5px;
+    border-top-right-radius: 5px;
     position: absolute;
     width: 18px;
-    height: 50px;
     right: -19px;
     top: 0;
     background: white;
