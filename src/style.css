@@ -34,6 +34,8 @@
 }
 
 #swfObjects .buttonsArea {
+    border: solid 1px lightblue;
+    border-left: 0px;
     border-bottom-right-radius: 5px;
     border-top-right-radius: 5px;
     position: absolute;
