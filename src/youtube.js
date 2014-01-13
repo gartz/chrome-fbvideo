@@ -218,7 +218,7 @@
         element.style.bottom = '';
         
         // When move video arround, restore it size
-        restoreVideoSize(video);
+        restoreVideoSize(element);
     }
     
     function resetFixed(element) {
@@ -363,13 +363,18 @@
         // but when not, move it to the left corner with other videos
     
         var videos = divSwfObjects.children;
-        var viewPorts = document.querySelector('#content div[videoViewPort]');
+        var viewPorts = document.querySelectorAll('#content div[data-video-view-port]');
+        
+        if (!viewPorts.length || !videos.length) {
+            return;
+        }
         
         minimizeVideos();
     
         Array.prototype.forEach.call(viewPorts, function (element) {
             // There is original position on DOM?
-            var video = videos.querySelector('[placeId="' + element.dataset.placeId + '""]');
+            var selector = '[data-place-id="' + element.dataset.videoViewPort + '"]';
+            var video = divSwfObjects.querySelector(selector);
             
             if (!video) {
                 resetFixed(video);
