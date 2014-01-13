@@ -93,6 +93,9 @@
             .parentElement;
     
         videoDiv.parentElement.removeChild(videoDiv);
+        
+        // Resize minimized videos
+        minimizeVideos();
     
         // There is cache from old element?
         var removedNodes = videoDiv.dataRemovedNodes;
