@@ -59,6 +59,7 @@
         var id = 'swfObject' + Date.now();
         var div = document.createElement('div');
         div.id = id;
+        div.dataset.videoViewPort = id;
         div.style.width = swfObject.clientWidth + 'px';
         div.style.height = swfObject.clientHeight + 'px';
         return div;
@@ -74,7 +75,7 @@
     // HELPERS
     
     function isElementInViewport(el) {
-        var rect = el.getBoundingClientRect();
+        var rect = el.getBoundingClientRect();''
     
         return (
             rect.top >= 0 &&
@@ -215,6 +216,9 @@
         element.style.top = position.top + 'px';
         element.style.right = '';
         element.style.bottom = '';
+        
+        // When move video arround, restore it size
+        restoreVideoSize(video);
     }
     
     function resetFixed(element) {
@@ -359,24 +363,25 @@
         // but when not, move it to the left corner with other videos
     
         var videos = divSwfObjects.children;
+        var viewPorts = document.querySelector('#content div[videoViewPort]');
+        
+        minimizeVideos();
     
-        Array.prototype.forEach.call(videos, function (element) {
+        Array.prototype.forEach.call(viewPorts, function (element) {
             // There is original position on DOM?
-            var placeElement = document.querySelector('#' + element.dataset.placeId);
-            if (!placeElement) {
-                resetFixed(element);
-                minimizeVideos();
+            var video = videos.querySelector('[placeId="' + element.dataset.placeId + '""]');
+            
+            if (!video) {
+                resetFixed(video);
                 return;
             }
     
-            if (!isElementInViewport(placeElement)) {
-                resetFixed(element);
-                minimizeVideos();
+            if (!isElementInViewport(element)) {
+                resetFixed(video);
                 return;
             }
     
-            fixedMoveTo(element, placeElement);
-            restoreVideoSize(element);
+            fixedMoveTo(video, element);
         });
     }
     
