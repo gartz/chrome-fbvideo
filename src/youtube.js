@@ -214,6 +214,7 @@
     
         var position = destine.getBoundingClientRect();
     
+        element.dataset.position = 'fixed';
         element.style.position = 'fixed';
         element.style.left = position.left + 'px';
         element.style.top = position.top + 'px';
@@ -229,6 +230,7 @@
         element.style.top = '';
         element.style.right = '';
     
+        element.dataset.position = 'relative';
         element.style.position = 'relative';
         element.style.paddingBottom = '4px';
         element.style.bottom = '0px';
@@ -368,11 +370,28 @@
         var videos = divSwfObjects.children;
         var viewPorts = document.querySelectorAll('#content div[data-video-view-port]');
         
-        if (!viewPorts.length || !videos.length) {
+        // No videos... nothing to do
+        if (!videos.length) {
             return;
         }
         
+        // Not found viewPorts, but maybe there is some video with fixed position
+        // out there, just lost without somewhere to dock, let's bring it back
+        if (!viewPorts.length) {
+            var fixedVideos = divSwfObjects.querySelectorAll('[data-position="fixed"]');
+            
+            Array.prototype.forEach.call(fixedVideos, function (element) {
+                resetFixed(element);
+            });
+        }
+        
+        // Minimize videos if they aren't
         minimizeVideos();
+        
+        // No viewPorts so... get out of here
+        if (!viewPorts.length) {
+            return;
+        }
     
         Array.prototype.forEach.call(viewPorts, function (element) {
             // There is original position on DOM?
