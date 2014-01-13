@@ -7,7 +7,7 @@
   "version": "0.3.0",
   "author": "Gabriel Reitz Giannattasio (gabriel@gartz.com.br)",
   "homepage_url": "https://github.com/gartz/chrome-fbvideo",
-  "minimum_chrome_version": "28",
+  "minimum_chrome_version": "18",
   "icons": { 
     "48": "images/icon48.png",
     "128": "images/icon128.png" 

@@ -556,6 +556,7 @@
         window.addEventListener('resize', swfObjectsUpdatePosition);
         window.addEventListener('resize', minimizeVideos);
         window.addEventListener('popstate', moveVideos);
+        window.addEventListener('popstate', minimizeVideos);
     
         document.addEventListener('click', onWindowClick, true);
     }
