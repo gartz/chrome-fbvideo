@@ -1,6 +1,8 @@
 chrome-fbvideo
 ==============
 
+[![Analytics](https://ga-beacon.appspot.com/UA-24619548-7/chrome-fbvideo/readme)](https://github.com/igrigorik/ga-beacon)
+
 Facebook Lost Video Chrome Plugin
 
 It's a plugin for Google Chrome that alows you to seek the facebook timeline and your youtube
